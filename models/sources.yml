@@ -10,6 +10,6 @@ sources:
 
   - name: stripe
     database: RAW
-    schema: STRIP
+    schema: STRIPE
     tables:
       - name: PAYMENT
