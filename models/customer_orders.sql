@@ -5,7 +5,7 @@ with
 
     customers as (select * from {{ source("jaffle_shop", "CUSTOMERS") }}),
 
-    stripe as (select * from {{ source("stripe", "PAYMENT") }}),
+    payment as (select * from {{ source("stripe", "PAYMENT") }}),
 
 --------------------
     paid_orders as (
@@ -25,7 +25,7 @@ with
                     orderid as order_id,
                     max(created) as payment_finalized_date,
                     sum(amount) / 100.0 as total_amount_paid
-                from raw.stripe.payment
+                from payment
                 where status <> 'fail'
                 group by 1
             ) p
