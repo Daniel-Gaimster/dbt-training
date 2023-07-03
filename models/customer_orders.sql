@@ -1,15 +1,24 @@
 with
+
+    -- Import CTES
+    orders as (select * from {{ source("jaffle_shop", "ORDERS") }}),
+
+    customers as (select * from {{ source("jaffle_shop", "CUSTOMERS") }}),
+
+    stripe as (select * from {{ source("stripe", "PAYMENT") }}),
+
+--------------------
     paid_orders as (
         select
-            orders.id as order_id,
-            orders.user_id as customer_id,
-            orders.order_date as order_placed_at,
-            orders.status as order_status,
+            o.id as order_id,
+            o.user_id as customer_id,
+            o.order_date as order_placed_at,
+            o.status as order_status,
             p.total_amount_paid,
             p.payment_finalized_date,
             c.first_name as customer_first_name,
             c.last_name as customer_last_name
-        from raw.jaffle_shop.orders as orders
+        from orders as o
         left join
             (
                 select
@@ -20,8 +29,8 @@ with
                 where status <> 'fail'
                 group by 1
             ) p
-            on orders.id = p.order_id
-        left join raw.jaffle_shop.customers c on orders.user_id = c.id
+            on o.id = p.order_id
+        left join customers c on o.user_id = c.id
     ),
 
     customer_orders as (
@@ -29,9 +38,9 @@ with
             c.id as customer_id,
             min(order_date) as first_order_date,
             max(order_date) as most_recent_order_date,
-            count(orders.id) as number_of_orders
-        from raw.jaffle_shop.customers c
-        left join raw.jaffle_shop.orders as orders on orders.user_id = c.id
+            count(o.id) as number_of_orders
+        from customers c
+        left join orders as o on c.id = o.user_id
         group by 1
     )
 
